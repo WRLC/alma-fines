@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<title>Fines App</title>
+    <h1>Fines App Prototype: Payment</h1>
+    <p>This is a test app for checking and recording payment of fines between institutions.</p>
+    <h2>paying selected fines</h2>
+        <ul>
+	{% for payment in payments %}
+	    <li><pre>{{ payment }}</pre></li>
+	{% endfor %}
+	</ul>
+{% endblock %}

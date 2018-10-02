@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<title>Fines App: User Page</title>
+    <h1>Fines App Prototype: User Page</h1>
+    <p>Lookup a user and show fines at institution</p>
+    <h2>Fines for {{ user['full_name'] }}</h2>
+    <form name="fines" id="fines" action="{{ url_for('payment') }}" method="post">
+	<ul>
+	{% for fee in fines['fee'] %}
+	<input type="checkbox"
+	       name="fee-{{ loop.index }}"
+	value="{'fee_id':'{{ fee['id'] }}','owner':'{{ fee['owner']['value'] }}','user':'{{ fee['user_primary_id']['value'] }}'}">
+	    <ul>
+		<li>ID: {{ fee['id'] }}</li>
+		<li>balance: ${{ fee['balance'] }}</li>
+		<li>type: {{ fee['type']['desc'] }}</li>
+		<li>owner: {{ fee['owner']['desc'] }}</li>
+	    </ul>
+        {% endfor %}
+	<!-- Pay selected fines: <input type="submit"> -->
+    </ul>
+	<div class="form-group">
+		<button id="submit-payment"  type="submit" class="btn btn-primary">Pay Selected Fines</button>
+	</div>
+    </form>
+{% endblock %} 
