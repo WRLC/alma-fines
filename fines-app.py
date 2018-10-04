@@ -1,4 +1,5 @@
-from flask import Flask, redirect, request, render_template, request, url_for
+from flask import (Flask, redirect, request, render_template,
+    request, session, url_for)
 import settings
 import json
 import requests
@@ -8,9 +9,16 @@ app = Flask(__name__)
 app.config['ALMA_API'] = settings.ALMA_API
 app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
 app.config['INST_MAP'] = settings.INST_MAP
+app.config['SESSION_KEY']= settings.SESSION_KEY
+app.config['FEE_RESOURCE'] = 'almaws/v1/users/{}/fees/{}'
+app.config['FEES_RESOURCE'] = 'almaws/v1/users/{}/fees'
+app.config['USER_RESOURCE'] = 'almaws/v1/users/{}'
+
+app.secret_key = app.config['SESSION_KEY']
 
 @app.route('/')
 def index():
+    session['username'] = 'hardy'
     return render_template('index.html',
                            institutions=app.config['ALMA_INSTANCES'].keys())
 
@@ -19,15 +27,19 @@ def user():
     if request.method == 'GET':
         return('there no get method defined yet')
     else:
-        fines = _get_fines(request.form['inst'], request.form['uid'])
         user = _get_user(request.form['inst'], request.form['uid'])
         if user == 400:
             return render_template('user_not_found.html',
                                    inst=request.form['inst'],
                                    uid=request.form['uid'])
         else:
+            fees = []
+            fines = _get_fines(request.form['inst'], request.form['uid'])
+
+            for fee in fines['fee']:
+                fees.append(fee)
             return render_template('user.html',
-                                   fines=fines,
+                                   fees=fees,
                                    user=user)
 
 
@@ -55,8 +67,10 @@ def payment():
 
 @app.route('/test', methods=['GET', 'POST'])
 def test():
-    result = _get_single_fine('scf', 'ihardy', '3297895250004617')
-    return result
+    result = []
+    for k in request.form:
+        result.append(request.form[k])
+    return(json.loads(result[0])['link'])
 
 def _count_submitted_fees(fees):
     count = 0
@@ -71,7 +85,7 @@ def _get_fines(inst, uid):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]
     r = requests.get(app.config['ALMA_API'] +
-                     'v1/users/{}/fees'.format(uid) + 
+                     app.config['FEES_RESOURCE'].format(uid) + 
                      '?apikey={}&status=ACTIVE&format=json'.format(api_key))
     return r.json()
 
@@ -79,16 +93,17 @@ def _get_single_fine(inst, uid, fee_id):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]
     r = requests.get(app.config['ALMA_API'] +
-                     'v1/users/{}/fees/{}'.format(uid, fee_id) +
+                     app.config['FEE_RESOURCE'].format(uid, fee_id) +
                      '?apikey={}&format=json'.format(api_key))
     return r.json()
 
 def _get_user(inst, uid):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]
+    params = {'apikey':api_key, 'format':'json'}
     r = requests.get(app.config['ALMA_API'] +
-                     'v1/users/{}'.format(uid) + 
-                     '?apikey={}&format=json'.format(api_key))
+                     app.config['USER_RESOURCE'].format(uid), 
+                     params=params)
     if r.status_code == 400:
         return r.status_code
     elif r.raise_for_status():
@@ -100,10 +115,14 @@ def _pay_single_fee(inst, uid, fee_id, amount):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]
     headers = {'Authorization' : 'apikey {}'.format(api_key)}
+    params = {
+              'op' : 'pay',
+              'method' : 'ONLINE',
+              'amount' : amount,
+              'format' : 'json'}
     r = requests.post(app.config['ALMA_API'] +
-                      'v1/users/{}/fees/{}'.format(uid, fee_id) +
-                      '?op=pay&method=ONLINE&amount={}'.format(amount) +
-                      '&format=json',
+                      app.config['FEE_RESOURCE'].format(uid, fee_id), 
+                      params=params,
                       headers=headers)
     return r.json()
 
