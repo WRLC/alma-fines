@@ -8,11 +8,13 @@ app = Flask(__name__)
 
 app.config['ALMA_API'] = settings.ALMA_API
 app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
+app.config['ALMA_INSTANCES_NEW'] = settings.ALMA_INSTANCES_NEW
 app.config['INST_MAP'] = settings.INST_MAP
 app.config['SESSION_KEY']= settings.SESSION_KEY
 app.config['FEE_RESOURCE'] = 'almaws/v1/users/{}/fees/{}'
 app.config['FEES_RESOURCE'] = 'almaws/v1/users/{}/fees'
 app.config['USER_RESOURCE'] = 'almaws/v1/users/{}'
+app.config['USERS_RESOURCE'] = 'almaws/v1/users'
 
 app.secret_key = app.config['SESSION_KEY']
 
@@ -23,24 +25,31 @@ def index():
                            institutions=app.config['ALMA_INSTANCES'].keys())
 
 @app.route('/user', methods=['GET', 'POST'])
-def user():
+def show_fines():
     if request.method == 'GET':
-        return('there no get method defined yet')
+        return redirect(url_for('index'))
     else:
-        user = _get_user(request.form['inst'], request.form['uid'])
-        if user == 400:
+        linked_account = _get_linked_user(request.form['inst'], 
+                                          request.form['lending-inst'], 
+                                          request.form['uid'])
+        source_user = _get_user(request.form['lending-inst'],
+                                linked_account['primary_id'])
+        if source_user == 400:
             return render_template('user_not_found.html',
-                                   inst=request.form['inst'],
+                                   inst=request.form['lending-inst'],
                                    uid=request.form['uid'])
         else:
             fees = []
-            fines = _get_fines(request.form['inst'], request.form['uid'])
-
-            for fee in fines['fee']:
-                fees.append(fee)
-            return render_template('user.html',
-                                   fees=fees,
-                                   user=user)
+            fines = _get_fines(request.form['lending-inst'], source_user['primary_id'])
+            if fines['total_record_count'] > 0:
+                for fee in fines['fee']:
+                    fees.append(fee)
+                return render_template('user_fines.html',
+                                       fees=fees,
+                                       user=source_user)
+            else:
+                return render_template('user_no_fines.html',
+                                        user=source_user)
 
 
 @app.route('/payment', methods=['POST'])
@@ -65,12 +74,20 @@ def payment():
     return render_template('payment.html',
                            payments=payments)
 
-@app.route('/test', methods=['GET', 'POST'])
-def test():
-    result = []
-    for k in request.form:
-        result.append(request.form[k])
-    return(json.loads(result[0])['link'])
+@app.route('/test/<uid>', methods=['GET', 'POST'])
+def test(uid):
+    if request.args.get('lending'):
+        user = _get_linked_user(request.args.get('home'),
+                                request.args.get('lending'),
+                                uid)
+        return json.dumps(user)
+    elif request.args.get('home'):
+        user = _get_user(request.args.get('home'), uid)
+        return json.dumps(user)
+    else:
+        return uid
+
+# Local functions
 
 def _count_submitted_fees(fees):
     count = 0
@@ -87,7 +104,10 @@ def _get_fines(inst, uid):
     r = requests.get(app.config['ALMA_API'] +
                      app.config['FEES_RESOURCE'].format(uid) + 
                      '?apikey={}&status=ACTIVE&format=json'.format(api_key))
-    return r.json()
+    if r.status_code != 200:
+        return r.raise_for_status()
+    else:
+        return r.json()
 
 def _get_single_fine(inst, uid, fee_id):
     inst_normal = _resolve_inst(inst)
@@ -110,6 +130,30 @@ def _get_user(inst, uid):
         return r.raise_for_status()
     else:
         return r.json()
+
+def _get_linked_user(inst, lending_inst, uid):
+    inst_normal = _resolve_inst(inst)
+    lending_inst_normal = _resolve_inst(lending_inst)
+    api_key = app.config['ALMA_INSTANCES'][lending_inst_normal]
+    inst_code = app.config['ALMA_INSTANCES_NEW'][inst_normal]['code']
+    params = {
+              'apikey':api_key,
+              'source_user_id':uid,
+              'source_institution_code':inst_code,
+              'format':'json'
+             }
+    r = requests.get(app.config['ALMA_API'] +
+                     app.config['USERS_RESOURCE'], 
+                     params=params)
+    if r.status_code == 400:
+        return r.status_code
+    elif r.raise_for_status():
+        return r.raise_for_status()
+    response = r.json()
+    if response['total_record_count'] > 1:
+        return 'error for more than one linked acct'
+    else:
+        return response['user'][0]
 
 def _pay_single_fee(inst, uid, fee_id, amount):
     inst_normal = _resolve_inst(inst)
