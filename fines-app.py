@@ -1,8 +1,10 @@
 from flask import (Flask, redirect, request, render_template,
     request, session, url_for)
-import settings
 import json
+import logging
+from logging.handlers import TimedRotatingFileHandler
 import requests
+import settings
 
 app = Flask(__name__)
 
@@ -15,8 +17,17 @@ app.config['FEE_RESOURCE'] = 'almaws/v1/users/{}/fees/{}'
 app.config['FEES_RESOURCE'] = 'almaws/v1/users/{}/fees'
 app.config['USER_RESOURCE'] = 'almaws/v1/users/{}'
 app.config['USERS_RESOURCE'] = 'almaws/v1/users'
+app.config['LOG_FILE'] = settings.LOG_FILE
 
 app.secret_key = app.config['SESSION_KEY']
+
+# audit log
+audit_log = logging.getLogger('audit')
+audit_log.setLevel(logging.INFO)
+file_handler = TimedRotatingFileHandler(app.config['LOG_FILE'], when='midnight')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
+audit_log.addHandler(file_handler)
 
 @app.route('/')
 def index():
@@ -32,25 +43,24 @@ def show_fines():
         linked_account = _get_linked_user(request.form['inst'], 
                                           request.form['lending-inst'], 
                                           request.form['uid'])
-        source_user = _get_user(request.form['lending-inst'],
-                                linked_account['primary_id'])
-        if source_user == 400:
+        if linked_account == 400:
             return render_template('user_not_found.html',
                                    inst=request.form['lending-inst'],
                                    uid=request.form['uid'])
         else:
+            lending_name = app.config['ALMA_INSTANCES_NEW'][request.form['lending-inst']]['name']
             fees = []
-            fines = _get_fines(request.form['lending-inst'], source_user['primary_id'])
+            fines = _get_fines(request.form['lending-inst'], linked_account['primary_id'])
             if fines['total_record_count'] > 0:
                 for fee in fines['fee']:
                     fees.append(fee)
                 return render_template('user_fines.html',
                                        fees=fees,
-                                       user=source_user)
+                                       lending_name=lending_name,
+                                       user=linked_account)
             else:
                 return render_template('user_no_fines.html',
                                         user=source_user)
-
 
 @app.route('/payment', methods=['POST'])
 def payment():
@@ -81,11 +91,10 @@ def test(uid):
                                 request.args.get('lending'),
                                 uid)
         return json.dumps(user)
-    elif request.args.get('home'):
+    else:
         user = _get_user(request.args.get('home'), uid)
         return json.dumps(user)
-    else:
-        return uid
+
 
 # Local functions
 
@@ -131,10 +140,10 @@ def _get_user(inst, uid):
     else:
         return r.json()
 
-def _get_linked_user(inst, lending_inst, uid):
+def _get_linked_user(inst, fines_inst, uid):
     inst_normal = _resolve_inst(inst)
-    lending_inst_normal = _resolve_inst(lending_inst)
-    api_key = app.config['ALMA_INSTANCES'][lending_inst_normal]
+    fines_inst_normal = _resolve_inst(fines_inst)
+    api_key = app.config['ALMA_INSTANCES'][fines_inst_normal]
     inst_code = app.config['ALMA_INSTANCES_NEW'][inst_normal]['code']
     params = {
               'apikey':api_key,

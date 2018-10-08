@@ -4,7 +4,7 @@
 <title>Fines App: User Page</title>
     <h1>Fines App Prototype: User Page</h1>
     <p>Lookup a user and show fines at institution</p>
-    <h2>Fines for {{ user['full_name'] }}</h2>
+    <h2>{{ lending_name }} fines for {{ user['last_name'] }}, {{ user['first_name'] }}</h2>
     <form name="fines" id="fines" action="{{ url_for('payment') }}" method="post">
 	<ul>
 	{% for fee in fees %}

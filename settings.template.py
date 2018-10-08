@@ -15,5 +15,8 @@ INST_MAP = {
     'your_other_library'	: 'your_iz',
 }
 
+# transaction log file
+LOG_FILE = './audit.log'
+
 # Secret key for session signing. Fill in with some random bytes
 SESSION_KEY = 'somerandomebytes'
