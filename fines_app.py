@@ -96,7 +96,7 @@ def show_fines():
                                        user=linked_account)
             else:
                 return render_template('user_no_fines.html',
-                                        user=source_user)
+                                        user=linked_account)
 
 @app.route('/payment', methods=['POST'])
 @auth_required
@@ -223,5 +223,5 @@ def _pay_single_fee(inst, uid, fee_id, amount):
     return r.json()
 
 
-
-app.run(debug=True,host='0.0.0.0')
+if __name__ == "__main__":
+    app.run(debug=True,host='0.0.0.0')
