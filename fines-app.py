@@ -1,5 +1,6 @@
 from flask import (Flask, redirect, request, render_template,
     request, session, url_for)
+from functools import wraps
 import json
 import logging
 from logging.handlers import TimedRotatingFileHandler
@@ -26,35 +27,70 @@ audit_log = logging.getLogger('audit')
 audit_log.setLevel(logging.INFO)
 file_handler = TimedRotatingFileHandler(app.config['LOG_FILE'], when='midnight')
 file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
+file_handler.setFormatter(logging.Formatter('%(asctime)s\t%(message)s'))
 audit_log.addHandler(file_handler)
 
+# decorator for pages that need auth
+def auth_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not 'username' in session:
+            return redirect(url_for('login'))
+        else:
+            return f(*args, **kwargs)
+            
+    return decorated
+
 @app.route('/')
+@auth_required
 def index():
-    session['username'] = 'hardy'
+    #session['username'] = 'hardy'
+    if 'user_home' in session:
+        session.pop('user_home', None)
+
     return render_template('index.html',
                            institutions=app.config['ALMA_INSTANCES'].keys())
 
+@app.route('/login')
+def login():
+    if 'username' in session:
+        return redirect(url_for('index'))
+    else:
+        session['username'] = 'ian'
+        return '<a href="/">login as ian</a>'
+
+@app.route('/logout')
+@auth_required
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('index'))
+
 @app.route('/user', methods=['GET', 'POST'])
+@auth_required
 def show_fines():
     if request.method == 'GET':
         return redirect(url_for('index'))
     else:
-        linked_account = _get_linked_user(request.form['inst'], 
-                                          request.form['lending-inst'], 
-                                          request.form['uid'])
+        user_home = request.form['inst']
+        lender = request.form['lending-inst']
+        uid = request.form['uid']
+        session['user_home'] = user_home
+        linked_account = _get_linked_user(user_home, 
+                                          lender, 
+                                          uid)
         if linked_account == 400:
             return render_template('user_not_found.html',
-                                   inst=request.form['lending-inst'],
-                                   uid=request.form['uid'])
+                                   inst=lender,
+                                   uid=uid)
         else:
-            lending_name = app.config['ALMA_INSTANCES_NEW'][request.form['lending-inst']]['name']
+            lending_name = app.config['ALMA_INSTANCES_NEW'][lender]['name']
             fees = []
             fines = _get_fines(request.form['lending-inst'], linked_account['primary_id'])
             if fines['total_record_count'] > 0:
                 for fee in fines['fee']:
                     fees.append(fee)
                 return render_template('user_fines.html',
+                                       home=user_home,
                                        fees=fees,
                                        lending_name=lending_name,
                                        user=linked_account)
@@ -63,6 +99,7 @@ def show_fines():
                                         user=source_user)
 
 @app.route('/payment', methods=['POST'])
+@auth_required
 def payment():
     payment_queue = []
     payments = []
@@ -78,6 +115,12 @@ def payment():
                                          payment['user_primary_id']['value'],
                                          payment['id'],
                                          str(payment['balance']))
+        audit_log.info(
+            '{staff_id}\t{accepted_at}\t{t_id}\t{amount}\t{owner}'.format(staff_id=session['username'],
+                                                                          accepted_at=session['user_home'],
+                                                                          t_id=payment_result['id'],
+                                                                          amount=payment_result['transaction'][0]['amount'],
+                                                                          owner=payment_result['owner']['value']))
         #payments.append(payment_result)
         payments.append(json.dumps(payment_result, sort_keys=True, indent=4))
 
@@ -85,6 +128,7 @@ def payment():
                            payments=payments)
 
 @app.route('/test/<uid>', methods=['GET', 'POST'])
+@auth_required
 def test(uid):
     if request.args.get('lending'):
         user = _get_linked_user(request.args.get('home'),
@@ -92,8 +136,7 @@ def test(uid):
                                 uid)
         return json.dumps(user)
     else:
-        user = _get_user(request.args.get('home'), uid)
-        return json.dumps(user)
+        return json.dumps({'id':uid})
 
 
 # Local functions
