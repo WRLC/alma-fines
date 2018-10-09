@@ -14,6 +14,7 @@ app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
 app.config['ALMA_INSTANCES_NEW'] = settings.ALMA_INSTANCES_NEW
 app.config['INST_MAP'] = settings.INST_MAP
 app.config['SESSION_KEY']= settings.SESSION_KEY
+app.config['TEST_USERS'] = settings.TEST_USERS
 app.config['FEE_RESOURCE'] = 'almaws/v1/users/{}/fees/{}'
 app.config['FEES_RESOURCE'] = 'almaws/v1/users/{}/fees'
 app.config['USER_RESOURCE'] = 'almaws/v1/users/{}'
@@ -44,10 +45,6 @@ def auth_required(f):
 @app.route('/')
 @auth_required
 def index():
-    #session['username'] = 'hardy'
-    if 'user_home' in session:
-        session.pop('user_home', None)
-
     return render_template('index.html',
                            institutions=app.config['ALMA_INSTANCES'].keys())
 
@@ -56,13 +53,21 @@ def login():
     if 'username' in session:
         return redirect(url_for('index'))
     else:
-        session['username'] = 'ian'
-        return '<a href="/">login as ian</a>'
+        return render_template('login.html')
+
+@app.route('/login/placeholder', methods=['POST'])
+def test_login():
+    if 'username' in session:
+        return redirect(url_for('index'))
+    else:
+        session['username'] = request.form['user-name']
+        session['user_home'] = app.config['TEST_USERS'][session['username']]
+        return redirect(url_for('index'))
 
 @app.route('/logout')
 @auth_required
 def logout():
-    session.pop('username', None)
+    session.clear()
     return redirect(url_for('index'))
 
 @app.route('/user', methods=['GET', 'POST'])
@@ -71,11 +76,9 @@ def show_fines():
     if request.method == 'GET':
         return redirect(url_for('index'))
     else:
-        user_home = request.form['inst']
         lender = request.form['lending-inst']
         uid = request.form['uid']
-        session['user_home'] = user_home
-        linked_account = _get_linked_user(user_home, 
+        linked_account = _get_linked_user(session['user_home'], 
                                           lender, 
                                           uid)
         if linked_account == 400:
@@ -90,7 +93,7 @@ def show_fines():
                 for fee in fines['fee']:
                     fees.append(fee)
                 return render_template('user_fines.html',
-                                       home=user_home,
+                                       home=session['user_home'],
                                        fees=fees,
                                        lending_name=lending_name,
                                        user=linked_account)

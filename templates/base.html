@@ -30,6 +30,9 @@
         {% if 'username' in session: %}
             <span class="text-muted">Logged in as: {{ session['username'] }}</span>
         {% endif %}
+        {% if 'user_home' in session: %}
+            <span class="text-muted">at institution: {{ session['user_home'] }}</span>
+        {% endif %}
     </div>
 </body>
 </html>
