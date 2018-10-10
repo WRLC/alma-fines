@@ -130,17 +130,10 @@ def payment():
     return render_template('payment.html',
                            payments=payments)
 
-@app.route('/test/<uid>', methods=['GET', 'POST'])
+@app.route('/test', methods=['GET', 'POST'])
 @auth_required
-def test(uid):
-    if request.args.get('lending'):
-        user = _get_linked_user(request.args.get('home'),
-                                request.args.get('lending'),
-                                uid)
-        return json.dumps(user)
-    else:
-        return json.dumps({'id':uid})
-
+def test():
+    return json.dumps(request.cookies)
 
 # Local functions
 
