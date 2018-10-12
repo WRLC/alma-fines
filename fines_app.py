@@ -59,7 +59,7 @@ def login():
         return render_template('login.html')
 
 @app.route('/login/n', methods=['GET'])
-def test_login():
+def new_login():
     session.clear()
     if 'wrt' in request.cookies:
         encoded_token =  request.cookies['wrt']

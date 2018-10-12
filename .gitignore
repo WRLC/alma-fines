@@ -1,6 +1,6 @@
 __pycache__
 env
 settings.py
-audit.log
+audit.log*
 *.pyc
 run.sh
