@@ -1,7 +1,9 @@
+import base64
 from flask import (Flask, redirect, request, render_template,
     request, session, url_for)
 from functools import wraps
 import json
+import jwt
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import requests
@@ -19,6 +21,7 @@ app.config['FEE_RESOURCE'] = 'almaws/v1/users/{}/fees/{}'
 app.config['FEES_RESOURCE'] = 'almaws/v1/users/{}/fees'
 app.config['USER_RESOURCE'] = 'almaws/v1/users/{}'
 app.config['USERS_RESOURCE'] = 'almaws/v1/users'
+app.config['SHARED_SECRET'] = settings.SHARED_SECRET
 app.config['LOG_FILE'] = settings.LOG_FILE
 
 app.secret_key = app.config['SESSION_KEY']
@@ -55,14 +58,21 @@ def login():
     else:
         return render_template('login.html')
 
-@app.route('/login/placeholder', methods=['POST'])
+@app.route('/login/n', methods=['GET'])
 def test_login():
-    if 'username' in session:
-        return redirect(url_for('index'))
+    session.clear()
+    if 'wrt' in request.cookies:
+        encoded_token =  request.cookies['wrt']
+        user_data = jwt.decode(encoded_token, app.config['SHARED_SECRET'], algorithms=['HS256'])
+        if user_data['primary_id']:
+            session['username'] = user_data['primary_id']
+            session['user_home'] = user_data['inst']
+            session['display_name'] = user_data['full_name']
+            return redirect(url_for('index'))
+        else:
+            return "no username set"
     else:
-        session['username'] = request.form['user-name']
-        session['user_home'] = app.config['TEST_USERS'][session['username']]
-        return redirect(url_for('index'))
+        return "no login cookie"
 
 @app.route('/logout')
 @auth_required
@@ -131,9 +141,13 @@ def payment():
                            payments=payments)
 
 @app.route('/test', methods=['GET', 'POST'])
-@auth_required
 def test():
-    return json.dumps(request.cookies)
+    if 'wrt' in request.cookies:
+        encoded =  request.cookies['wrt']
+        decoded = jwt.decode(encoded, 'example_key', algorithms=['HS256'])
+        return json.dumps(decoded)
+    else:
+        return "no login cookie"
 
 # Local functions
 

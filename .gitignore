@@ -3,3 +3,4 @@ env
 settings.py
 audit.log
 *.pyc
+run.sh
