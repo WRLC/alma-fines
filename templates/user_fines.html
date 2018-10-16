@@ -1,25 +1,47 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Fines App Prototype: User Page</h1>
+    <h1>Fines for: {{ data['uid'] }}</h1>
     <p>Lookup a user and show fines at institution</p>
-    <h2>{{ lending_name }} fines for {{ user['last_name'] }}, {{ user['first_name'] }}</h2>
-    <form name="fines" id="fines" action="{{ url_for('payment') }}" method="post">
-	<ul>
-	{% for fee in fees %}
-	<input type="checkbox"
-	       name="{{ fee['id'] }}"
-	       value="{'fee_id':'{{ fee['id'] }}','owner':'{{ fee['owner']['value'] }}','user':'{{ fee['user_primary_id']['value'] }}'}">
-	    <ul>
-		<li>ID: {{ fee['id'] }}</li>
-		<li>balance: ${{ fee['balance'] }}</li>
-		<li>type: {{ fee['type']['desc'] }}</li>
-		<li>owner: {{ fee['owner']['desc'] }}</li>
-	    </ul>
+    <form id="fines" name="fines" action="{{ url_for('payment') }}" method="post">
+    <input type="hidden" name="payments" id="payments" />
+    {% for inst in data['all_fees'] %}
+    <h3>{{ inst['inst_display_name'] }}</h2>
+		<table class="table">
+			<thread>
+				<tr>
+					<th scope="col">Pay</th>
+					<th scope="col">Fee ID</th>
+					<th scope="col">User</th>
+					<th scope="col">Balance</th>
+					<th scope="col">Type</th>
+					<th scope="col">Item</th>
+					<th scope="col">Owner</th>
+				</tr>
+			</thread>
+			<tbody>
+                               {% for fee in inst['fees'] %}
+				<tr>
+					<td><input type="checkbox" 
+                                                   data-fine-id="{{ fee['id'] }}"
+                                                   data-fine-balance="{{ fee['balance'] }}"
+					           data-fine-inst="{{ inst['lender'] }}"
+                                                   value="{{ fee['link'] }}"></td>
+					<td>{{ fee['id'] }}</td>
+					<td>{{ inst['display_name'] }}</td>
+					<td>{{ fee['balance'] }}</td>
+					<td>{{ fee['type']['desc'] }}</td>
+					<td>{{ fee['title'] }}</td>
+					<td>{{ fee['owner']['desc'] }}</td>
+				</tr>
+                                {% endfor %}
+			</tbody>
+		</table>
         {% endfor %}
-    </ul>
+
 	<div class="form-group">
-		<button id="submit-payment"  type="submit" class="btn btn-primary">Pay Selected Fines</button>
+		<button id="submit-payment" type="submit" class="btn btn-primary">Pay Selected Fines</button>
 	</div>
+	
     </form>
 {% endblock %} 

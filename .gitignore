@@ -4,3 +4,4 @@ settings.py
 audit.log*
 *.pyc
 run.sh
+sample.json

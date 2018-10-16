@@ -1,4 +1,3 @@
-import base64
 from flask import (Flask, redirect, request, render_template,
     request, session, url_for)
 from functools import wraps
@@ -86,62 +85,75 @@ def show_fines():
     if request.method == 'GET':
         return redirect(url_for('index'))
     else:
-        lender = request.form['lending-inst']
         uid = request.form['uid']
-        linked_account = _get_linked_user(session['user_home'], 
-                                          lender, 
-                                          uid)
-        if linked_account == 400:
-            return render_template('user_not_found.html',
-                                   inst=lender,
-                                   uid=uid)
-        else:
-            lending_name = app.config['ALMA_INSTANCES_NEW'][lender]['name']
-            fees = []
-            fines = _get_fines(request.form['lending-inst'], linked_account['primary_id'])
-            if fines['total_record_count'] > 0:
-                for fee in fines['fee']:
-                    fees.append(fee)
-                return render_template('user_fines.html',
-                                       home=session['user_home'],
-                                       fees=fees,
-                                       lending_name=lending_name,
-                                       user=linked_account)
+        # build fees data
+        user_fines = {'all_fees':[],
+                      'uid':uid}
+        for lender in app.config['ALMA_INSTANCES_NEW']:
+            linked_account = _get_linked_user(session['user_home'], 
+                                              lender, 
+                                              uid)
+            if linked_account == 400:
+                # linked account not found at lender
+                pass
             else:
-                return render_template('user_no_fines.html',
-                                        user=linked_account)
+                # an account was found, check for fines
+                lending_name = app.config['ALMA_INSTANCES_NEW'][lender]['name']
+                fines = _get_fines(lender, linked_account['primary_id'])
+                if fines['total_record_count'] > 0:
+                    iz_fees = {'fees': []} 
+                    iz_fees['lender'] = lender 
+                    iz_fees['display_name'] = ', '.join([linked_account['last_name'],
+                                                         linked_account['first_name']])
+                    iz_fees['inst_display_name'] = app.config['ALMA_INSTANCES_NEW'][lender]['name']
+                    for fee in fines['fee']:
+                        iz_fees['fees'].append(fee)
+                    user_fines['all_fees'].append(iz_fees)
+                else:
+                    # no fines were found at this inst
+                    pass
 
-@app.route('/payment', methods=['POST'])
+        if len(user_fines['all_fees']) > 0:
+            return render_template('user_fines.html',
+                                   data=user_fines)
+        else:
+            return render_template('user_no_fines.html',
+                                   data=user_fines)
+
+@app.route('/payment', methods=['GET','POST'])
 @auth_required
 def payment():
-    payment_queue = []
+    payment_queue = json.loads(request.form['payments'])
     payments = []
-    for k in request.form:
-        fee_data = json.loads(request.form[k].replace("'", '"'))
-        fee_details = _get_single_fine(fee_data['owner'].lower(),
-                                       fee_data['user'],
-                                       fee_data['fee_id'])
-        payment_queue.append(fee_details)
-
-    for payment in payment_queue:
-        payment_result = _pay_single_fee(payment['owner']['value'].lower(),
-                                         payment['user_primary_id']['value'],
-                                         payment['id'],
-                                         str(payment['balance']))
-        audit_log.info(
+    for k in payment_queue:
+        for fee in payment_queue[k]:
+           payment =  _pay_single_fee(k, fee['link'], fee['amount'])
+           audit_log.info(
             '{staff_id}\t{accepted_at}\t{t_id}\t{amount}\t{owner}'.format(staff_id=session['username'],
                                                                           accepted_at=session['user_home'],
-                                                                          t_id=payment_result['id'],
-                                                                          amount=payment_result['transaction'][0]['amount'],
-                                                                          owner=payment_result['owner']['value']))
-        #payments.append(payment_result)
-        payments.append(json.dumps(payment_result, sort_keys=True, indent=4))
+                                                                          t_id=payment['id'],
+                                                                          amount=payment['transaction'][0]['amount'],
+                                                                          owner=payment['owner']['value']))
+           payments.append(payment)
 
+    # use for testing w/o creating payment (commend out above too)
+    #with open('sample.json') as sample:
+    #    payments = json.load(sample)
+    #return json.dumps(payments)
     return render_template('payment.html',
                            payments=payments)
 
-@app.route('/test', methods=['GET', 'POST'])
-def test():
+@app.route('/backdoor/<inst>')
+def backdoor(inst):
+    session.clear()
+    session['username'] = 'backdoor'
+    session['user_home'] = inst
+    session['display_name'] = 'backdoor user'
+    return redirect(url_for('index'))
+
+
+@app.route('/testcookie', methods=['GET', 'POST'])
+def test_cookie():
     if 'wrt' in request.cookies:
         encoded =  request.cookies['wrt']
         decoded = jwt.decode(encoded, 'example_key', algorithms=['HS256'])
@@ -217,7 +229,7 @@ def _get_linked_user(inst, fines_inst, uid):
     else:
         return response['user'][0]
 
-def _pay_single_fee(inst, uid, fee_id, amount):
+def _pay_single_fee(inst, link, amount):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]
     headers = {'Authorization' : 'apikey {}'.format(api_key)}
@@ -226,12 +238,8 @@ def _pay_single_fee(inst, uid, fee_id, amount):
               'method' : 'ONLINE',
               'amount' : amount,
               'format' : 'json'}
-    r = requests.post(app.config['ALMA_API'] +
-                      app.config['FEE_RESOURCE'].format(uid, fee_id), 
-                      params=params,
-                      headers=headers)
+    r = requests.post(link, params=params, headers=headers)
     return r.json()
 
-
 if __name__ == "__main__":
-    app.run(debug=True,host='0.0.0.0')
+    app.run(debug=True,host='0.0.0.0:8383')
