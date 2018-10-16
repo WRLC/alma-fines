@@ -3,10 +3,31 @@
 {% block content %}
     <h1>Fines App Prototype: Payment</h1>
     <p>This is a test app for checking and recording payment of fines between institutions.</p>
-    <h2>paying selected fines</h2>
-        <ul>
-	{% for payment in payments %}
-	    <li><pre>{{ payment }}</pre></li>
-	{% endfor %}
-	</ul>
+    <h2>Payments processed</h2>
+                <table class="table">
+                        <thread>
+                                <tr>
+                                        <th scope="col">Transaction ID</th>
+                                        <th scope="col">Item Barcode</th>
+                                        <th scope="col">User ID</th>
+                                        <th scope="col">Paid</th>
+                                        <th scope="col">Current Balance</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Owner</th>
+                                </tr>
+                        </thread>
+                        <tbody>
+	                       {% for payment in payments %}
+                                <tr>
+                                        <td>{{ payment['id'] }}</td>
+                                        <td>{{ payment['barcode'] }}</td>
+                                        <td>{{ payment['user_primary_id']['value'] }}</td>
+                                        <td>{{ payment['transaction'][0]['amount'] }}</td>
+                                        <td>{{ payment['balance'] }}</td>
+                                        <td>{{ payment['status']['desc'] }}</td>
+                                        <td>{{ payment['owner']['desc'] }}</td>
+                                </tr>
+                                {% endfor %}
+                        </tbody>
+                </table>
 {% endblock %}

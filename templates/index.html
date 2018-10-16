@@ -9,14 +9,6 @@
             <label for="uid" class="col-sm-2 col-form-label">User ID</label>
 	    <input name="uid" type="text">
 	</div>
-	<div class="form-group row">
-            <label for="lending-inst" class="col-sm-2 col-form-label">Lending(?) Institution</label>
-            <select name="lending-inst" id="lending-inst">
-	    {% for inst in institutions %}
-	        <option value="{{ inst }}">{{ inst }}</option>
-	    {% endfor %}
-	</select>
-	</div>
 	<div class="form-group">
 	    <button type="submit" class="btn btn-primary">Search</button>
 	</div>

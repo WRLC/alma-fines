@@ -4,7 +4,7 @@
     <h1>Fines App Prototype</h1>
     <form name="login-form" method="get" onsubmit="return submitLogin()">
     <div class="form-group row">
-    <label for="user-name" class="col-sm-2 col-form-label">Login As</label>
+    <label for="user-name" class="col-sm-2 col-form-label">Login At</label>
       <select name="user-name" id="user-name">
           <option value="au">American University</option>
           <option value="ca">Cathlic University</option>
@@ -14,5 +14,4 @@
     <div class="form-group">
         <button type="submit" class="btn btn-primary">Login</button>
     </div>
-<script src="{{ url_for('static', filename='loginform.js') }}" type="text/javascript""></script>
 {% endblock %}
