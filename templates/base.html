@@ -29,7 +29,7 @@
     <div class="container">
 	{% block content %}{% endblock %}		  
         {% if 'username' in session: %}
-            <span class="text-muted">Logged in as: {{ session['username'] }}</span>
+            <span class="text-muted">Logged in as: {{ session['display_name'] }}</span>
         {% endif %}
         {% if 'user_home' in session: %}
             <span class="text-muted">at institution: {{ session['user_home'] }}</span>
