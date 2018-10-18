@@ -242,4 +242,5 @@ def _pay_single_fee(inst, link, amount):
     return r.json()
 
 if __name__ == "__main__":
-    app.run(debug=True,host='0.0.0.0:8383')
+    #app.run(debug=True,host='0.0.0.0:8383')
+    app.run(debug=True)

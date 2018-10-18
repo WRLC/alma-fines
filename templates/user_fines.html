@@ -7,10 +7,11 @@
     <input type="hidden" name="payments" id="payments" />
     {% for inst in data['all_fees'] %}
     <h3>{{ inst['inst_display_name'] }}</h2>
-		<table class="table">
+    <table class="table" id="{{ inst['lender'] }}">
 			<thread>
 				<tr>
 					<th scope="col">Pay</th>
+					<th scope="col">Payment Amount</th>
 					<th scope="col">Fee ID</th>
 					<th scope="col">User</th>
 					<th scope="col">Balance</th>
@@ -19,14 +20,15 @@
 					<th scope="col">Owner</th>
 				</tr>
 			</thread>
-			<tbody>
+			<tbody id="fee-list-{{ inst['lender'] }}">
                                {% for fee in inst['fees'] %}
 				<tr>
-					<td><input type="checkbox" 
+					<td class="fee-data"><input type="checkbox" 
                                                    data-fine-id="{{ fee['id'] }}"
                                                    data-fine-balance="{{ fee['balance'] }}"
 					           data-fine-inst="{{ inst['lender'] }}"
                                                    value="{{ fee['link'] }}"></td>
+					<td class="amount-input"><input type="text" size="3" class="form-control" value="{{ fee['balance'] }}"></input></td>
 					<td>{{ fee['id'] }}</td>
 					<td>{{ inst['display_name'] }}</td>
 					<td>{{ fee['balance'] }}</td>

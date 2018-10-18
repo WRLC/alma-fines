@@ -10,6 +10,25 @@ function submitLogin() {
     return false;
 }
 
+function validatePayments() {
+    $("#fines").children("table").each(function(){
+        var tid = $(this).attr("id");
+        $("#fee-list-" + tid).children("tr").each(function(){
+            //console.log($(this).children("td").text())
+            var balance = $(this).children("td").find("[type=checkbox]").attr("data-fine-balance");
+            var paymentAmount = $(this).children("td").find("[type=text]").val();
+            // need to convert from txt to ints (*100 or whatever)
+            if (paymentAmount > balance) {
+                return false
+            } else if (paymentAmount <= 0) {
+                return false
+            }
+
+        })
+    return true
+    });
+}
+
 // payment form
 $(function(){
     $("#fines").on("submit", function(){
@@ -26,5 +45,12 @@ $(function(){
         });
         $("#payments").attr('value', JSON.stringify(finesSelected));
         //e.preventDefault();
+	if ( validatePayments() ){
+        alert("VALID");
+        return false;
+    } else {
+	    alert("NOT VALID");
+	    return false;
+	}
     });
 });
