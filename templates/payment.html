@@ -20,7 +20,7 @@
 	                       {% for payment in payments %}
                                 <tr>
                                         <td>{{ payment['id'] }}</td>
-                                        <td>{{ payment['barcode'] }}</td>
+                                        <td>{{ payment['barcode']['value'] }}</td>
                                         <td>{{ payment['user_primary_id']['value'] }}</td>
                                         <td>{{ payment['transaction'][0]['amount'] }}</td>
                                         <td>{{ payment['balance'] }}</td>

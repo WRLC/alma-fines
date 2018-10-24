@@ -1,4 +1,4 @@
-from flask import (Flask, redirect, request, render_template,
+from flask import (Flask, abort, redirect, request, render_template,
     request, session, url_for)
 from functools import wraps
 import json
@@ -63,13 +63,13 @@ def new_login():
     if 'wrt' in request.cookies:
         encoded_token =  request.cookies['wrt']
         user_data = jwt.decode(encoded_token, app.config['SHARED_SECRET'], algorithms=['HS256'])
-        if user_data['primary_id']:
+        if 'fines_payment' in user_data['authorizations']:
             session['username'] = user_data['primary_id']
             session['user_home'] = user_data['inst']
             session['display_name'] = user_data['full_name']
             return redirect(url_for('index'))
         else:
-            return "no username set"
+            abort(403)
     else:
         return "no login cookie"
 
@@ -154,6 +154,9 @@ def backdoor(inst):
 
 @app.route('/testcookie', methods=['GET', 'POST'])
 def test_cookie():
+    '''
+    https://aladin-tst.wrlc.org/simplesaml/wrlcauth/issue.php?institution=wr&url=http://fines.wrlc.org/testcookie
+    '''
     if 'wrt' in request.cookies:
         encoded =  request.cookies['wrt']
         decoded = jwt.decode(encoded, 'example_key', algorithms=['HS256'])
