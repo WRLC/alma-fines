@@ -3,8 +3,14 @@ ALMA_API = 'https://api-na.hosted.exlibrisgroup.com/almaws/'
 
 # name each alma IZ and add the api key
 ALMA_INSTANCES = {
-    'my_iz'	: 'apikey',
-    'your_iz'	: 'apikey',
+    'iza' : {
+             'key'      : 'apikey',
+             'name'     : 'Your IZ Name',
+             'code'     : 'IZID',
+            },
+    'izb'  : { 'key'  : 'apikey',
+             'name' : 'Your IZ Name',
+             'code' : 'IZID',
 }
 
 # this maps the library names to the izs that they belong to

@@ -90,13 +90,11 @@ def show_fines():
         user_fines = {'all_fees':[],
                       'uid':uid}
         for lender in app.config['ALMA_INSTANCES']:
-            linked_account = _get_linked_user(session['user_home'], 
-                                              lender, 
-                                              uid)
-            if linked_account == 400:
-                # linked account not found at lender
-                pass
-            else:
+            try:
+                linked_account = _get_linked_user(session['user_home'], 
+                                                  lender, 
+                                                  uid)
+                # if now error was thrown from _get_linked_user
                 # an account was found, check for fines
                 lending_name = app.config['ALMA_INSTANCES'][lender]['name']
                 fines = _get_fines(lender, linked_account['primary_id'])
@@ -109,9 +107,9 @@ def show_fines():
                     for fee in fines['fee']:
                         iz_fees['fees'].append(fee)
                     user_fines['all_fees'].append(iz_fees)
-                else:
-                    # no fines were found at this inst
-                    pass
+            except requests.exceptions.HTTPError:
+                # no fines at this instiution
+                pass
 
         if len(user_fines['all_fees']) > 0:
             return render_template('user_fines.html',
@@ -165,6 +163,37 @@ def test_cookie():
         return "no login cookie"
 
 # Local functions
+def _alma_get(resource, apikey, params=None, fmt='json'):
+    '''
+    makes a generic alma api call, pass in a resource
+    '''
+    params = params or {}
+    params['apikey'] = apikey
+    params['format'] = fmt
+    r = requests.get(resource, params=params) 
+    r.raise_for_status()
+    if fmt == 'json':
+        return r.json()
+    else:
+        return r.content
+
+def _alma_post(resource, apikey, payload=None, params=None, fmt='json'): 
+    '''
+    makes a generic put request to alma api. puts xml data.
+    '''
+    payload = payload or {}
+    params = params or {}
+    params['format'] = fmt
+    headers =  {'Authorization' : 'apikey ' + apikey}
+    r = requests.post(resource,
+                     headers=headers,
+                     params=params,
+                     data=payload)
+    r.raise_for_status()
+    if fmt == 'json':
+        return r.json()
+    else:
+        return r.content
 
 def _count_submitted_fees(fees):
     count = 0
@@ -178,35 +207,22 @@ def _resolve_inst(inst):
 def _get_fines(inst, uid):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
-    r = requests.get(app.config['ALMA_API'] +
-                     app.config['FEES_RESOURCE'].format(uid) + 
-                     '?apikey={}&status=ACTIVE&format=json'.format(api_key))
-    if r.status_code != 200:
-        return r.raise_for_status()
-    else:
-        return r.json()
-
-def _get_single_fine(inst, uid, fee_id):
-    inst_normal = _resolve_inst(inst)
-    api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
-    r = requests.get(app.config['ALMA_API'] +
-                     app.config['FEE_RESOURCE'].format(uid, fee_id) +
-                     '?apikey={}&format=json'.format(api_key))
-    return r.json()
+    params = {'status':'ACTIVE'}
+    response = _alma_get(app.config['ALMA_API'] +
+                         app.config['FEES_RESOURCE'].format(uid),
+                         api_key,
+                         params=params)
+    return response
 
 def _get_user(inst, uid):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
     params = {'apikey':api_key, 'format':'json'}
-    r = requests.get(app.config['ALMA_API'] +
-                     app.config['USER_RESOURCE'].format(uid), 
-                     params=params)
-    if r.status_code == 400:
-        return r.status_code
-    elif r.raise_for_status():
-        return r.raise_for_status()
-    else:
-        return r.json()
+    response = _alma_get(app.config['ALMA_API'] +
+                         app.config['USER_RESOURCE'].format(uid), 
+                         api_key,
+                         params)
+    return response
 
 def _get_linked_user(inst, fines_inst, uid):
     inst_normal = _resolve_inst(inst)
@@ -214,35 +230,28 @@ def _get_linked_user(inst, fines_inst, uid):
     api_key = app.config['ALMA_INSTANCES'][fines_inst_normal]['key']
     inst_code = app.config['ALMA_INSTANCES'][inst_normal]['code']
     params = {
-              'apikey':api_key,
               'source_user_id':uid,
               'source_institution_code':inst_code,
-              'format':'json'
              }
-    r = requests.get(app.config['ALMA_API'] +
-                     app.config['USERS_RESOURCE'], 
-                     params=params)
-    if r.status_code == 400:
-        return r.status_code
-    elif r.raise_for_status():
-        return r.raise_for_status()
-    response = r.json()
+    response = _alma_get(app.config['ALMA_API'] +
+                         app.config['USERS_RESOURCE'], 
+                         api_key,
+                         params)
     if response['total_record_count'] > 1:
-        return 'error for more than one linked acct'
+        return abort(500)
     else:
         return response['user'][0]
 
 def _pay_single_fee(inst, link, amount):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
-    headers = {'Authorization' : 'apikey {}'.format(api_key)}
     params = {
               'op' : 'pay',
               'method' : 'ONLINE',
               'amount' : amount,
-              'format' : 'json'}
-    r = requests.post(link, params=params, headers=headers)
-    return r.json()
+             }
+    response = _alma_post(linke, api_key, params=params)
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True,host='0.0.0.0:8383')
