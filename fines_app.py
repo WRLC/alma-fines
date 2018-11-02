@@ -89,7 +89,16 @@ def show_fines():
         # build fees data
         user_fines = {'all_fees':[],
                       'uid':uid}
+        lenders = []
         for lender in app.config['ALMA_INSTANCES']:
+            if lender == session['user_home']:
+                # this is the users home institution
+                # don't pay fines through this app (use alma!)
+                pass
+            else:
+                lenders.append(lender)
+
+        for lender in lenders:
             try:
                 linked_account = _get_linked_user(session['user_home'], 
                                                   lender, 
