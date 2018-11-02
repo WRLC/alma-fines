@@ -29,7 +29,7 @@
                                                    value="{{ fee['link'] }}"></td>
 					<td>{{ fee['id'] }}</td>
 					<td>{{ inst['display_name'] }}</td>
-					<td>{{ fee['balance'] }}</td>
+					<td>{{ "$%.2f"|format(fee['balance']) }}</td>
 					<td>{{ fee['type']['desc'] }}</td>
 					<td>{{ fee['title'] }}</td>
 					<td>{{ fee['owner']['desc'] }}</td>

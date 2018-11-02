@@ -22,8 +22,8 @@
                                         <td>{{ payment['id'] }}</td>
                                         <td>{{ payment['barcode']['value'] }}</td>
                                         <td>{{ payment['user_primary_id']['value'] }}</td>
-                                        <td>{{ payment['transaction'][0]['amount'] }}</td>
-                                        <td>{{ payment['balance'] }}</td>
+                                        <td>{{ "$%.2f"|format(payment['transaction'][0]['amount']) }}</td>
+                                        <td>{{ "$%.2f"|format(payment['balance']) }}</td>
                                         <td>{{ payment['status']['desc'] }}</td>
                                         <td>{{ payment['owner']['desc'] }}</td>
                                 </tr>
