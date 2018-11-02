@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 app.config['ALMA_API'] = settings.ALMA_API
 app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
-app.config['ALMA_INSTANCES_NEW'] = settings.ALMA_INSTANCES_NEW
+app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
 app.config['INST_MAP'] = settings.INST_MAP
 app.config['SESSION_KEY']= settings.SESSION_KEY
 app.config['TEST_USERS'] = settings.TEST_USERS
@@ -89,7 +89,7 @@ def show_fines():
         # build fees data
         user_fines = {'all_fees':[],
                       'uid':uid}
-        for lender in app.config['ALMA_INSTANCES_NEW']:
+        for lender in app.config['ALMA_INSTANCES']:
             linked_account = _get_linked_user(session['user_home'], 
                                               lender, 
                                               uid)
@@ -98,14 +98,14 @@ def show_fines():
                 pass
             else:
                 # an account was found, check for fines
-                lending_name = app.config['ALMA_INSTANCES_NEW'][lender]['name']
+                lending_name = app.config['ALMA_INSTANCES'][lender]['name']
                 fines = _get_fines(lender, linked_account['primary_id'])
                 if fines['total_record_count'] > 0:
                     iz_fees = {'fees': []} 
                     iz_fees['lender'] = lender 
                     iz_fees['display_name'] = ', '.join([linked_account['last_name'],
                                                          linked_account['first_name']])
-                    iz_fees['inst_display_name'] = app.config['ALMA_INSTANCES_NEW'][lender]['name']
+                    iz_fees['inst_display_name'] = app.config['ALMA_INSTANCES'][lender]['name']
                     for fee in fines['fee']:
                         iz_fees['fees'].append(fee)
                     user_fines['all_fees'].append(iz_fees)
@@ -177,7 +177,7 @@ def _resolve_inst(inst):
 
 def _get_fines(inst, uid):
     inst_normal = _resolve_inst(inst)
-    api_key = app.config['ALMA_INSTANCES'][inst_normal]
+    api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
     r = requests.get(app.config['ALMA_API'] +
                      app.config['FEES_RESOURCE'].format(uid) + 
                      '?apikey={}&status=ACTIVE&format=json'.format(api_key))
@@ -188,7 +188,7 @@ def _get_fines(inst, uid):
 
 def _get_single_fine(inst, uid, fee_id):
     inst_normal = _resolve_inst(inst)
-    api_key = app.config['ALMA_INSTANCES'][inst_normal]
+    api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
     r = requests.get(app.config['ALMA_API'] +
                      app.config['FEE_RESOURCE'].format(uid, fee_id) +
                      '?apikey={}&format=json'.format(api_key))
@@ -196,7 +196,7 @@ def _get_single_fine(inst, uid, fee_id):
 
 def _get_user(inst, uid):
     inst_normal = _resolve_inst(inst)
-    api_key = app.config['ALMA_INSTANCES'][inst_normal]
+    api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
     params = {'apikey':api_key, 'format':'json'}
     r = requests.get(app.config['ALMA_API'] +
                      app.config['USER_RESOURCE'].format(uid), 
@@ -211,8 +211,8 @@ def _get_user(inst, uid):
 def _get_linked_user(inst, fines_inst, uid):
     inst_normal = _resolve_inst(inst)
     fines_inst_normal = _resolve_inst(fines_inst)
-    api_key = app.config['ALMA_INSTANCES'][fines_inst_normal]
-    inst_code = app.config['ALMA_INSTANCES_NEW'][inst_normal]['code']
+    api_key = app.config['ALMA_INSTANCES'][fines_inst_normal]['key']
+    inst_code = app.config['ALMA_INSTANCES'][inst_normal]['code']
     params = {
               'apikey':api_key,
               'source_user_id':uid,
@@ -234,7 +234,7 @@ def _get_linked_user(inst, fines_inst, uid):
 
 def _pay_single_fee(inst, link, amount):
     inst_normal = _resolve_inst(inst)
-    api_key = app.config['ALMA_INSTANCES'][inst_normal]
+    api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
     headers = {'Authorization' : 'apikey {}'.format(api_key)}
     params = {
               'op' : 'pay',
