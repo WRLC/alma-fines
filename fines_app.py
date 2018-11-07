@@ -259,7 +259,7 @@ def _pay_single_fee(inst, link, amount):
               'method' : 'ONLINE',
               'amount' : amount,
              }
-    response = _alma_post(linke, api_key, params=params)
+    response = _alma_post(link, api_key, params=params)
     return response
 
 if __name__ == "__main__":
