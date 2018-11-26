@@ -134,14 +134,18 @@ def payment():
     payments = []
     for k in payment_queue:
         for fee in payment_queue[k]:
-           payment =  _pay_single_fee(k, fee['link'], fee['amount'])
-           audit_log.info(
-            '{staff_id}\t{accepted_at}\t{t_id}\t{amount}\t{owner}'.format(staff_id=session['username'],
-                                                                          accepted_at=session['user_home'],
-                                                                          t_id=payment['id'],
-                                                                          amount=payment['transaction'][0]['amount'],
-                                                                          owner=payment['owner']['value']))
-           payments.append(payment)
+            payment =  _pay_single_fee(k, fee['link'], fee['amount'])
+            audit_log.info('{staff_id}\t{accepted_at}\t{t_id}\t{amount}\t{owner}'
+                .format(staff_id=session['username'],
+                        accepted_at=session['user_home'],
+                        t_id=payment['id'],
+                        amount=payment['transaction'][0]['amount'],
+                        owner=payment['owner']['value']))
+
+            # add IZ name to payment info
+            iz_owner_name = app.config['ALMA_INSTANCES'][_resolve_inst(k)]['name']
+            payment['iz_owner_name'] = iz_owner_name
+            payments.append(payment)
 
     # use for testing w/o creating payment (commend out above too)
     #with open('sample.json') as sample:
@@ -263,4 +267,4 @@ def _pay_single_fee(inst, link, amount):
     return response
 
 if __name__ == "__main__":
-    app.run(debug=True,host='0.0.0.0')
+    app.run(debug=True)

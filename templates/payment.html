@@ -25,7 +25,7 @@
                                         <td>{{ "$%.2f"|format(payment['transaction'][0]['amount']) }}</td>
                                         <td>{{ "$%.2f"|format(payment['balance']) }}</td>
                                         <td>{{ payment['status']['desc'] }}</td>
-                                        <td>{{ payment['owner']['desc'] }}</td>
+                                        <td>{{ payment['iz_owner_name'] }}</td>
                                 </tr>
                                 {% endfor %}
                         </tbody>
