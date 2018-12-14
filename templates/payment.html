@@ -4,6 +4,7 @@
     <h1>Fines App Prototype: Payment</h1>
     <p>This is a test app for checking and recording payment of fines between institutions.</p>
     <h2>Payments processed</h2>
+        <div id="printable-area">
                 <table class="table">
                         <thread>
                                 <tr>
@@ -30,4 +31,10 @@
                                 {% endfor %}
                         </tbody>
                 </table>
+        </div>
+        <form>
+            <div class="form-group">
+                <button id="print-button" type="submit" class="btn btn-primary" onClick="window.print();return false;">Print</button>
+            </div>
+        </form>
 {% endblock %}

@@ -1,0 +1,15 @@
+/* special print styles for payment screen */
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-area, #printable-area * {
+    visibility: visible;
+  }
+  #printable-area {
+    position: absolute;
+    left: 0;
+    top: 10px;
+  }
+}
