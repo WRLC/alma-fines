@@ -3,6 +3,8 @@ version: 2.1
 jobs:
   build:
     working_directory: ~/alma-fines
+    environment:
+      FLASK_APP: fines
     docker:
       - image: circleci/python:3.6.4
 
