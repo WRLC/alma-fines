@@ -5,3 +5,5 @@ audit.log*
 *.pyc
 run.sh
 sample.json
+# osx junk
+.DS_Store

@@ -6,7 +6,7 @@ import jwt
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import requests
-import settings
+from . import settings
 
 app = Flask(__name__)
 

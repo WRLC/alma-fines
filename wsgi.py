@@ -1,4 +1,4 @@
-from fines_app import app
+from fines import app
 
 if __name__ == "__main__":
     app.run()
