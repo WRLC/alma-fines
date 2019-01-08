@@ -134,7 +134,7 @@ def payment():
     payments = []
     for k in payment_queue:
         for fee in payment_queue[k]:
-            payment =  _pay_single_fee(k, fee['link'], fee['amount'])
+            payment =  _pay_single_fee(k, session['user_home'], fee['link'], fee['amount'])
             audit_log.info('{staff_id}\t{accepted_at}\t{t_id}\t{amount}\t{owner}'
                 .format(staff_id=session['username'],
                         accepted_at=session['user_home'],
@@ -255,13 +255,14 @@ def _get_linked_user(inst, fines_inst, uid):
     else:
         return response['user'][0]
 
-def _pay_single_fee(inst, link, amount):
+def _pay_single_fee(inst, collecting_inst, link, amount):
     inst_normal = _resolve_inst(inst)
     api_key = app.config['ALMA_INSTANCES'][inst_normal]['key']
     params = {
               'op' : 'pay',
               'method' : 'ONLINE',
               'amount' : amount,
+              'comment' : 'wrlcfinesapp {}'.format(collecting_inst)
              }
     response = _alma_post(link, api_key, params=params)
     return response
