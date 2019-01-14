@@ -13,9 +13,13 @@ Set up python
 virtualenv -p python3.6 ENV
 source ENV/bin/activate
 pip install -r requirements.txt
+cp settings.template.py settings.py
 ```
+Configure the settings.py file to match your environemnt.
+
+### Tests
+After configuring settings.py, run `pytest -v` to be sure you've configured settings.py with valide API keys.
 Run this app
 ```
 gunicorn -b 127.0.0.1:8000 wsgi:app
 ```
-
