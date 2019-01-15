@@ -4,13 +4,15 @@
     <h1>Fines App Prototype</h1>
     <p>This is a test app for checking and recording payment of fines between institutions.</p>
     <h2>Lookup User</h2>
-    <form id="lookup-user" action="{{ url_for('show_fines') }}" method="post">
-	<div class="form-group row">
-            <label for="uid" class="col-sm-2 col-form-label">User ID</label>
-	    <input name="uid" type="text">
-	</div>
-	<div class="form-group">
-	    <button type="submit" class="btn btn-primary">Search</button>
-	</div>
-    </form>
+    <div id="lookup-form-div">
+        <form id="lookup-user" action="{{ url_for('show_fines') }}" method="post">
+	        <div class="form-group row">
+                <label for="uid" class="col-sm-2 col-form-label">User ID</label>
+	            <input name="uid" type="text">
+	        </div>
+	        <div class="form-group">
+	            <button id-"lookup-user-button" type="submit" class="btn btn-primary">Search</button>
+	        </div>
+        </form>
+    </div>
 {% endblock %}    
