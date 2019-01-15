@@ -28,3 +28,18 @@ $(function(){
         //e.preventDefault();
     });
 });
+
+// search users warning
+$(function(){
+    $("#lookup-user").on("submit", function(){
+        $("#lookup-form-div").after(
+            //'<div class="spinner-grow" role="status"><span class="sr-only">Loading...</span></div>'
+            `<div class="spinner-grow" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <div id="loading-message" class="d-inline-block p-2">
+                <span id="loading-message" class="font-weight-bold">Searching for fines accross all WRLC IZss. This takes a moment...</span>
+            </div>`
+        );
+    });
+});
