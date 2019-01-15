@@ -38,7 +38,7 @@ $(function(){
                 <span class="sr-only">Loading...</span>
             </div>
             <div id="loading-message" class="d-inline-block p-2">
-                <span id="loading-message" class="font-weight-bold">Searching for fines accross all WRLC IZss. This takes a moment...</span>
+                <span id="loading-message" class="font-weight-bold">Searching for fines accross all WRLC IZs. This takes a moment...</span>
             </div>`
         );
     });
