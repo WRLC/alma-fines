@@ -92,9 +92,12 @@ def show_fines():
         lenders = []
         for lender in app.config['ALMA_INSTANCES']:
             if lender == session['user_home']:
-                # this is the users home institution
-                # don't pay fines through this app (use alma!)
-                pass
+                # this is the users home institution, get full name
+                try:
+                    home_account = _get_user(lender, uid)
+                    patron_name = home_account['full_name']
+                except requests.exceptions.HTTPError:
+                    abort(500)
             else:
                 lenders.append(lender)
 
@@ -122,15 +125,18 @@ def show_fines():
 
         if len(user_fines['all_fees']) > 0:
             return render_template('user_fines.html',
-                                   data=user_fines)
+                                   data=user_fines,
+                                   patron_name=patron_name)
         else:
             return render_template('user_no_fines.html',
-                                   data=user_fines)
+                                   data=user_fines,
+                                   patron_name=patron_name)
 
 @app.route('/payment', methods=['GET','POST'])
 @auth_required
 def payment():
     payment_queue = json.loads(request.form['payments'])
+    patron_name = request.form['patron_name']
     payments = []
     for k in payment_queue:
         for fee in payment_queue[k]:
@@ -152,7 +158,8 @@ def payment():
     #    payments = json.load(sample)
     #return json.dumps(payments)
     return render_template('payment.html',
-                           payments=payments)
+                           payments=payments,
+                           patron_name=patron_name)
 
 @app.route('/backdoor/<inst>')
 def backdoor(inst):
