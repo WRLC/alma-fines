@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Fines for: {{ data['uid'] }}</h1>
+    <h1>Fines for: {{ patron_name }}</h1>
     <p>Lookup a user and show fines at institution</p>
     <form id="fines" name="fines" action="{{ url_for('payment') }}" method="post">
+    <input type="hidden" name="patron_name" id="patron_name" value="{{ patron_name }}">
     <input type="hidden" name="payments" id="payments" />
     {% for inst in data['all_fees'] %}
     <h3>{{ inst['inst_display_name'] }}</h2>
