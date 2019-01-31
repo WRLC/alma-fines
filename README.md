@@ -17,6 +17,8 @@ cp settings.template.py settings.py
 ```
 Configure the settings.py file to match your environemnt.
 
+On WRLC servers this app runs in a Green Unicorn (Python WSGI HTTP Server) service. The daemon is started and stoped via systemd. The config is `/etc/systemd/system/alma-fines.service`
+
 ### Tests
 After configuring settings.py, run `pytest -v` to be sure you've configured settings.py with valide API keys.
 Run this app
