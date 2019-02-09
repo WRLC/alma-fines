@@ -1,36 +1,36 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Fines App Prototype: Payment</h1>
-    <p>This is a test app for checking and recording payment of fines between institutions.</p>
+    <h1>AFN Fine/Fee App: Payment</h1>
+    <p>Check and record payment of fines and fees between IZs in the Automated Fulfillment Network.</p>
     <h2>Payments processed for {{ patron_name }}</h2>
         <div id="printable-area">
-                <table class="table">
-                        <thread>
-                                <tr>
-                                        <th scope="col">Transaction ID</th>
-                                        <th scope="col">Item Barcode</th>
-                                        <th scope="col">User ID</th>
-                                        <th scope="col">Paid</th>
-                                        <th scope="col">Current Balance</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Owner</th>
-                                </tr>
-                        </thread>
-                        <tbody>
-	                       {% for payment in payments %}
-                                <tr>
-                                        <td>{{ payment['id'] }}</td>
-                                        <td>{{ payment['barcode']['value'] }}</td>
-                                        <td>{{ payment['user_primary_id']['value'] }}</td>
-                                        <td>{{ "$%.2f"|format(payment['transaction'][0]['amount']) }}</td>
-                                        <td>{{ "$%.2f"|format(payment['balance']) }}</td>
-                                        <td>{{ payment['status']['desc'] }}</td>
-                                        <td>{{ payment['iz_owner_name'] }}</td>
-                                </tr>
-                                {% endfor %}
-                        </tbody>
-                </table>
+            <table class="table">
+                <thread>
+                    <tr>
+                        <th scope="col">Transaction ID</th>
+                        <th scope="col">Item Barcode</th>
+                        <th scope="col">User ID</th>
+                        <th scope="col">Paid</th>
+                        <th scope="col">Current Balance</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Owner</th>
+                    </tr>
+                </thread>
+                <tbody>
+                   {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment['id'] }}</td>
+                        <td>{{ payment['barcode']['value'] }}</td>
+                        <td>{{ payment['user_primary_id']['value'] }}</td>
+                        <td>{{ "$%.2f"|format(payment['transaction'][0]['amount']) }}</td>
+                        <td>{{ "$%.2f"|format(payment['balance']) }}</td>
+                        <td>{{ payment['status']['desc'] }}</td>
+                        <td>{{ payment['iz_owner_name'] }}</td>
+                    </tr>
+                   {% endfor %}
+                </tbody>
+            </table>
         </div>
         <form>
             <div class="form-group">

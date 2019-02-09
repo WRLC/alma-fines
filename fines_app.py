@@ -22,6 +22,7 @@ app.config['USER_RESOURCE'] = 'almaws/v1/users/{}'
 app.config['USERS_RESOURCE'] = 'almaws/v1/users'
 app.config['SHARED_SECRET'] = settings.SHARED_SECRET
 app.config['LOG_FILE'] = settings.LOG_FILE
+app.config['COMMENT_TAG'] = settings.COMMENT_TAG
 
 app.secret_key = app.config['SESSION_KEY']
 
@@ -269,7 +270,7 @@ def _pay_single_fee(inst, collecting_inst, link, amount):
               'op' : 'pay',
               'method' : 'ONLINE',
               'amount' : amount,
-              'comment' : 'wrlcfinesapp {}'.format(collecting_inst)
+              'comment' : '{} {}'.format(app.config['COMMENT_TAG'], collecting_inst)
              }
     response = _alma_post(link, api_key, params=params)
     return response

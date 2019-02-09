@@ -1,48 +1,48 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Fines for: {{ patron_name }}</h1>
+    <h1>Fines/Fees for: {{ patron_name }}</h1>
     <p>Lookup a user and show fines at institution</p>
     <form id="fines" name="fines" action="{{ url_for('payment') }}" method="post">
     <input type="hidden" name="patron_name" id="patron_name" value="{{ patron_name }}">
     <input type="hidden" name="payments" id="payments" />
     {% for inst in data['all_fees'] %}
     <h3>{{ inst['inst_display_name'] }}</h2>
-		<table class="table">
-			<thread>
-				<tr>
-					<th scope="col">Pay</th>
-					<th scope="col">Fee ID</th>
-					<th scope="col">User</th>
-					<th scope="col">Balance</th>
-					<th scope="col">Type</th>
-					<th scope="col">Item</th>
-					<th scope="col">Owner</th>
-				</tr>
-			</thread>
-			<tbody>
-                               {% for fee in inst['fees'] %}
-				<tr>
-					<td><input type="checkbox" 
-                                                   data-fine-id="{{ fee['id'] }}"
-                                                   data-fine-balance="{{ fee['balance'] }}"
-					           data-fine-inst="{{ inst['lender'] }}"
-                                                   value="{{ fee['link'] }}"></td>
-					<td>{{ fee['id'] }}</td>
-					<td>{{ inst['display_name'] }}</td>
-					<td>{{ "$%.2f"|format(fee['balance']) }}</td>
-					<td>{{ fee['type']['desc'] }}</td>
-					<td>{{ fee['title'] }}</td>
-					<td>{{ inst['inst_display_name'] }}</td>
-				</tr>
-                                {% endfor %}
-			</tbody>
-		</table>
+        <table class="table">
+            <thread>
+                <tr>
+                    <th scope="col">Pay</th>
+                    <th scope="col">Fee ID</th>
+                    <th scope="col">User</th>
+                    <th scope="col">Balance</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Item</th>
+                    <th scope="col">Owner</th>
+                </tr>
+            </thread>
+            <tbody>
+              {% for fee in inst['fees'] %}
+                <tr>
+                    <td><input type="checkbox" data-fine-id="{{ fee['id'] }}"
+                               data-fine-balance="{{ fee['balance'] }}"
+                               data-fine-inst="{{ inst['lender'] }}"
+                               value="{{ fee['link'] }}">
+                    </td>
+                    <td>{{ fee['id'] }}</td>
+                    <td>{{ inst['display_name'] }}</td>
+                    <td>{{ "$%.2f"|format(fee['balance']) }}</td>
+                    <td>{{ fee['type']['desc'] }}</td>
+                    <td>{{ fee['title'] }}</td>
+                    <td>{{ inst['inst_display_name'] }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+        </table>
         {% endfor %}
 
-	<div class="form-group">
-		<button id="submit-payment" type="submit" class="btn btn-primary">Pay Selected Fines</button>
-	</div>
-	
+    <div class="form-group">
+        <button id="submit-payment" type="submit" class="btn btn-primary">Pay Selected Fines</button>
+    </div>
+    
     </form>
 {% endblock %} 
