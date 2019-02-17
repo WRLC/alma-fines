@@ -10,6 +10,15 @@ import settings
 
 app = Flask(__name__)
 
+# set up logging to work with WSGI server
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+
+# TBD: set up error handlers & templates for HTTP codes used in abort()
+#   see http://flask.pocoo.org/docs/1.0/patterns/errorpages/
+
 app.config['ALMA_API'] = settings.ALMA_API
 app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
 app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
@@ -90,16 +99,21 @@ def show_fines():
         # build fees data
         user_fines = {'all_fees':[],
                       'uid':uid}
+        app.logger.debug('Searching for '+session['user_home']+' user '+uid+' fines')
         lenders = []
         for lender in app.config['ALMA_INSTANCES']:
             if lender == session['user_home']:
                 # this is the users home institution, get full name
                 try:
                     home_account = _get_user(lender, uid)
-                    patron_name = home_account['full_name']
+                    #app.logger.debug('_get_user() returned ' + json.dumps(home_account))
+                    if 'full_name' in home_account:
+                        patron_name = home_account['full_name']
+                    else:
+                        abort(404)
                 except requests.exceptions.HTTPError:
                     abort(500)
-            else:
+            elif app.config['ALMA_INSTANCES'][lender]['is_lender']:
                 lenders.append(lender)
 
         for lender in lenders:
