@@ -16,9 +16,6 @@ if __name__ != '__main__':
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
 
-# TBD: set up error handlers & templates for HTTP codes used in abort()
-#   see http://flask.pocoo.org/docs/1.0/patterns/errorpages/
-
 app.config['ALMA_API'] = settings.ALMA_API
 app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
 app.config['ALMA_INSTANCES'] = settings.ALMA_INSTANCES
@@ -34,6 +31,18 @@ app.config['LOG_FILE'] = settings.LOG_FILE
 app.config['COMMENT_TAG'] = settings.COMMENT_TAG
 
 app.secret_key = app.config['SESSION_KEY']
+
+# set up error handlers & templates for HTTP codes used in abort()
+#   see http://flask.pocoo.org/docs/1.0/patterns/errorpages/
+@app.errorhandler(400)
+def badrequest(e):
+    return render_template('error_400.html'), 400
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template('unauthorized.html'), 403
+@app.errorhandler(500)
+def internalerror(e):
+    return render_template('error_500.html'), 500
 
 # audit log
 audit_log = logging.getLogger('audit')
@@ -106,12 +115,25 @@ def show_fines():
                 # this is the users home institution, get full name
                 try:
                     home_account = _get_user(lender, uid)
-                    #app.logger.debug('_get_user() returned ' + json.dumps(home_account))
+                    app.logger.debug('_get_user() returned a ' + type(home_account).__name__)
                     if 'full_name' in home_account:
                         patron_name = home_account['full_name']
                     else:
-                        abort(404)
-                except requests.exceptions.HTTPError:
+                        app.logger.error('Unexpected response for home_account (full_name missing)')
+                        abort(500)
+                except requests.exceptions.HTTPError as e:
+                    status_code = e.response.status_code
+                    if status_code == 400:
+                        errors = json.loads(e.response.text)
+                        for err in errors['errorList']['error']:
+                            app.logger.debug(err['errorCode']+': '+err['errorMessage'])
+                            if err['errorCode'] == '401861':
+                                return render_template( 'user_not_found.html',
+                                                        uid=uid, inst=lender )
+                    app.logger.error('GET /almaws/v1/users/'+uid+' returned '+e.response.text)
+                    abort(status_code)
+                except requests.exceptions.RequestException as e:
+                    app.logger.error('POST /user/'+uid+' exception: '+e.response.text)
                     abort(500)
             elif app.config['ALMA_INSTANCES'][lender]['is_lender']:
                 lenders.append(lender)
@@ -273,6 +295,8 @@ def _get_linked_user(inst, fines_inst, uid):
                          api_key,
                          params)
     if response['total_record_count'] > 1:
+        app.logger.error('Unexpected # of records for '+inst_code+'::'+uid
+                        +' in '+fines_inst+': '+response['total_record_count'])
         return abort(500)
     else:
         return response['user'][0]
