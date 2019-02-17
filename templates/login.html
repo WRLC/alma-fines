@@ -1,17 +1,21 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Fines App Prototype</h1>
+    <h1>AFN Fine/Fee App</h1>
     <form name="login-form" method="get" onsubmit="return submitLogin()">
     <div class="form-group row">
     <label for="user-name" class="col-sm-2 col-form-label">Login At</label>
       <select name="user-name" id="user-name">
+//- Note: values must match Aladin-SP/auth/authZsettings.php
           <option value="au">American University</option>
           <option value="cu">Catholic University</option>
           <option value="ga">Gallaudet University</option>
           <option value="gm">George Mason University</option>
           <option value="gt">Georgetown University</option>
+          <option value="gt-law">Georgetown University Law</option>
           <option value="gw">George Washington University</option>
+          <option value="gw">George Washington University</option>
+          <option value="hi">Himmelfarb Health Sciences Library</option>
           <option value="hu">Howard University</option>
           <option value="mu">Marymount University</option>
           <option value="dc">University of the District of Columbia</option>

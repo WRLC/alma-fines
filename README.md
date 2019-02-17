@@ -1,7 +1,7 @@
 # WRLC Fines app
-UNDER DEVELOPMENT
+Status: minimally viable product (MVP) release
 
-This application allows circulation workers to accept fine payments for fines assessed by other Alma institution zones. It marks the fines payed in the lending IZ, and keeps an audit log of transactions. The audit log can be used to do a monthly fine payment reconciliation between libraries.
+This application allows circulation workers to accept fine payments for fines assessed by other Alma institution zones. It marks the fines payed in the lending IZ, and keeps an audit log of transactions.
 
 ## Installation
 Clone this repository. Non WRLC people can clone over https: https://github.com/WRLC/alma-fines.git

@@ -1,7 +1,8 @@
 __pycache__
 env
+venv
 settings.py
-audit.log*
+log/*
 *.pyc
 run.sh
 sample.json
