@@ -10,20 +10,24 @@
     <header class="header">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="collapse navbar-collapse" id="navbarText">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item active">
-                       <a class="nav-link" href="{{ url_for('index') }}">Home</a>
-            </li>
-                    {% if 'username' in session: %}
-                    <li class="nav-item">
-                       <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-            </li>
-                    {% else: %}
-                    <li class="nav-item">
-                       <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-            </li>
-                    {% endif %}
-        </ul>
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                </li>
+              {% if 'username' in session: %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                </li>
+              {% else: %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                </li>
+              {% endif %}
+                <li class="navbar-text">&nbsp;&nbsp;&nbsp;&nbsp;</li>
+                <li class="navbar-header">
+                    <a class="navbar-brand" href="#">AFN Fine/Fee App</a>
+                </li>
+            </ul>
         </div>
     </nav>
     </header>

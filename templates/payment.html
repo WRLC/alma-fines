@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>AFN Fine/Fee App: Payment</h1>
-    <p>Check and record payment of fines and fees between IZs in the Automated Fulfillment Network.</p>
-    <h2>Payments processed for {{ patron_name }}</h2>
+    <p><b>Payment:</b> Check and record payment of fines and fees between IZs in the Automated Fulfillment Network.</p>
+    <h5>Payments processed for {{ patron_name }}</h5>
         <div id="printable-area">
             <table class="table">
                 <thread>
@@ -35,6 +34,7 @@
         <form>
             <div class="form-group">
                 <button id="print-button" type="submit" class="btn btn-primary" onClick="window.print();return false;">Print</button>
+                <a class="btn btn-link" href="{{ url_for('index') }}">Return Home</a>
             </div>
         </form>
 {% endblock %}
