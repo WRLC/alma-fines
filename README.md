@@ -30,7 +30,7 @@ systemctl enable alma-fines.services
 The daemon is started and stoped via systemd. The config is `/etc/systemd/system/alma-fines.service`
 
 ## Tests
-After configuring settings.py, run `pytest-3 -v` (or equivalent in your python environment) to be sure you've configured settings.py with valid API keys. Further unit tests are needed (see [issue #18](WRLC/alma-fines#18) ).
+After configuring settings.py, run `pytest-3 -v` (or equivalent in your python environment) to be sure you've configured settings.py with valid API keys. Further unit tests are needed (see issue #18).
 
 ## Staff Authentication
 This application assumes another system for authentication and authorization that will communicate with this one via a [JSON Web Token](https://jwt.io/). The JWT is passed in a cookie name `wrt`. The shared secret used to decode the token is defined in `settings.py`. The token is expected to include four data elements:
@@ -44,7 +44,7 @@ This application assumes another system for authentication and authorization tha
 
 WRLC's authN/authZ system uses SAML to authenticate users from their home institutions' Identity Providers and the Alma user API to look them up in Alma and check Circulation roles for authorization. 
 The institutions are currently hard-coded in `templates/login.html` and the URL to send the user to login is hard-coded in `static/js/frontend.js`.
-To integrate with your service provider login you will need to change those files (at least until we properly extract those variables to `settings.py`--see issue #29 ).
+To integrate with your service provider login you will need to change those files (at least until we properly extract those variables to `settings.py`--see issue #29).
 A simpler authN/authZ system that maintains its own list of users could also work.
 
 ### Important!
