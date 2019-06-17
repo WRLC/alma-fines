@@ -34,7 +34,8 @@ After configuring settings.py, run `pytest-3 -v` (or equivalent in your python e
 
 ## Staff Authentication
 This application assumes another system for authentication and authorization that will communicate with this one via a Jason Web Token. The JWT is passed in a cookie name `wrt`. The shared secret used to decode the token is defined in `settings.py`. The token is expected to include four data elements:
-| data element key | description |
+
+| Key | Description |
 | -------------- | --------------------------- |
 | ['primary_id'] | the staff user's id in Alma |
 | ['inst'] | the staff user's institution code as specified in the `ALMA_INSTANCES` settings |
