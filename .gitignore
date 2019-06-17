@@ -1,5 +1,6 @@
 __pycache__
 env
+ENV
 venv
 settings.py
 log/*
@@ -7,3 +8,4 @@ log/*
 run.sh
 sample.json
 .DS_Store
+.cache
