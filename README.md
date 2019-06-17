@@ -30,11 +30,11 @@ systemctl enable alma-fines.services
 The daemon is started and stoped via systemd. The config is `/etc/systemd/system/alma-fines.service`
 
 ## Tests
-After configuring settings.py, run `pytest-3 -v` (or equivalent in your python environment) to be sure you've configured settings.py with valid API keys.
+After configuring settings.py, run `pytest-3 -v` (or equivalent in your python environment) to be sure you've configured settings.py with valid API keys. Further unit tests are needed.
 
 ## Staff Authentication
 This application assumes another system for authentication and authorization that will communicate with this one via a Jason Web Token. The JWT is passed in a cookie name `wrt`. The shared secret used to decode the token is defined in `settings.py`. The token is expected to include four data elements:
-
+| data element key | description |
 | -------------- | --------------------------- |
 | ['primary_id'] | the staff user's id in Alma |
 | ['inst'] | the staff user's institution code as specified in the `ALMA_INSTANCES` settings |
