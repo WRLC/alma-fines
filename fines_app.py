@@ -1,5 +1,5 @@
-from flask import (Flask, abort, redirect, request, render_template,
-    request, session, url_for)
+from flask import Flask, abort, redirect, render_template, request, session, url_for, current_app
+from pymemcache.client.base import Client as memcacheClient
 from functools import wraps
 import json
 import jwt
@@ -29,6 +29,8 @@ app.config['USERS_RESOURCE'] = 'almaws/v1/users'
 app.config['SHARED_SECRET'] = settings.SHARED_SECRET
 app.config['LOG_FILE'] = settings.LOG_FILE
 app.config['COMMENT_TAG'] = settings.COMMENT_TAG
+app.config['COOKIE_NAME'] = settings.COOKIE_NAME
+app.config['MEMCACHED_SERVER'] = settings.MEMCACHED_SERVER
 
 app.secret_key = app.config['SESSION_KEY']
 
@@ -74,21 +76,28 @@ def login():
     if 'username' in session:
         return redirect(url_for('index'))
     else:
-        return render_template('login.html')
+        url = settings.SAML_SP + settings.COOKIE_ISSUING_FILE + '?service=' + settings.SERVICE_SLUG
+        return redirect(url)
 
 @app.route('/login/n', methods=['GET'])
 def new_login():
     session.clear()
-    if 'wrt' in request.cookies:
-        encoded_token =  request.cookies['wrt']
-        user_data = jwt.decode(encoded_token, app.config['SHARED_SECRET'], algorithms=['HS256'])
-        if 'fines_payment' in user_data['authorizations']:
-            session['username'] = user_data['primary_id']
-            session['user_home'] = user_data['inst']
-            session['display_name'] = user_data['full_name']
-            return redirect(url_for('index'))
-        else:
-            abort(403)
+    if 'AladinSessionFines' in request.cookies:
+        memcached_key = request.cookies[current_app.config['COOKIE_NAME']]  # get the login cookie
+        memcached = memcacheClient((current_app.config['MEMCACHED_SERVER'], 11211))
+        user_data = {}
+        for line in memcached.get(memcached_key).decode('utf-8').splitlines():
+            key, value = line.split('=')
+            user_data[key] = value
+        session['username'] = user_data['UserName']
+        session['user_home'] = settings.IDP_ALMA_MAP[user_data['University']]
+        user_data['full_name'] = ''
+        if 'GivenName' in user_data:
+            user_data['full_name'] += user_data['GivenName'] + ' '
+        if 'Name' in user_data:
+            user_data['full_name'] += user_data['Name']
+        session['display_name'] = user_data['full_name']
+        return redirect(url_for('index'))
     else:
         return "no login cookie"
 
@@ -312,6 +321,10 @@ def _pay_single_fee(inst, collecting_inst, link, amount):
              }
     response = _alma_post(link, api_key, params=params)
     return response
+
+
+def get_location_code(inst_code):
+    return app.config['INST_MAP'][inst_code]
 
 if __name__ == "__main__":
     app.run(debug=True)
