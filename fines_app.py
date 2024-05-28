@@ -29,7 +29,7 @@ app.config['USERS_RESOURCE'] = 'almaws/v1/users'
 app.config['SHARED_SECRET'] = settings.SHARED_SECRET
 app.config['LOG_FILE'] = settings.LOG_FILE
 app.config['COMMENT_TAG'] = settings.COMMENT_TAG
-app.config['COOKIE_NAME'] = settings.COOKIE_NAME
+app.config['COOKIE_PREFIX'] = settings.COOKIE_PREFIX
 app.config['MEMCACHED_SERVER'] = settings.MEMCACHED_SERVER
 
 app.secret_key = app.config['SESSION_KEY']
