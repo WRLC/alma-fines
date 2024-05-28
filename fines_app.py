@@ -29,7 +29,7 @@ app.config['USERS_RESOURCE'] = 'almaws/v1/users'
 app.config['SHARED_SECRET'] = settings.SHARED_SECRET
 app.config['LOG_FILE'] = settings.LOG_FILE
 app.config['COMMENT_TAG'] = settings.COMMENT_TAG
-app.config['COOKIE_NAME'] = settings.COOKIE_NAME
+app.config['COOKIE_PREFIX'] = settings.COOKIE_PREFIX
 app.config['MEMCACHED_SERVER'] = settings.MEMCACHED_SERVER
 
 app.secret_key = app.config['SESSION_KEY']
@@ -82,8 +82,9 @@ def login():
 @app.route('/login/n', methods=['GET'])
 def new_login():
     session.clear()
-    if 'AladinSessionFines' in request.cookies:
-        memcached_key = request.cookies[current_app.config['COOKIE_NAME']]  # get the login cookie
+    cookie_name = settings.COOKIE_PREFIX + settings.SERVICE_SLUG
+    if cookie_name in request.cookies:
+        memcached_key = request.cookies[cookie_name]  # get the login cookie
         memcached = memcacheClient((current_app.config['MEMCACHED_SERVER'], 11211))
         user_data = {}
         for line in memcached.get(memcached_key).decode('utf-8').splitlines():

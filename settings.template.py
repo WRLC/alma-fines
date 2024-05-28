@@ -37,7 +37,7 @@ SHARED_SECRET = 'SomeRandomBytesHere'
 COMMENT_TAG = 'FinesAppPROD'
 
 SAML_SP = 'https://saml.example.org'
-COOKIE_NAME = 'CookeNameHere'
+COOKIE_PREFIX = 'CookePrefixHere'
 COOKIE_ISSUING_FILE = '/example/saml/endpoint'
 SERVICE_SLUG = 'fines'
 MEMCACHED_SERVER = 'memcached.example.org'
