@@ -82,8 +82,9 @@ def login():
 @app.route('/login/n', methods=['GET'])
 def new_login():
     session.clear()
-    if 'AladinSessionFines' in request.cookies:
-        memcached_key = request.cookies[current_app.config['COOKIE_NAME']]  # get the login cookie
+    cookie_name = settings.COOKIE_PREFIX + settings.SERVICE_SLUG
+    if cookie_name in request.cookies:
+        memcached_key = request.cookies[cookie_name]  # get the login cookie
         memcached = memcacheClient((current_app.config['MEMCACHED_SERVER'], 11211))
         user_data = {}
         for line in memcached.get(memcached_key).decode('utf-8').splitlines():
