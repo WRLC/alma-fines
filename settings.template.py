@@ -39,6 +39,7 @@ COMMENT_TAG = 'FinesAppPROD'
 SAML_SP = 'https://saml.example.org'
 COOKIE_PREFIX = 'CookePrefixHere'
 COOKIE_ISSUING_FILE = '/example/saml/endpoint'
+LOGOUT_SCRIPT = '/example/saml/logout'
 SERVICE_SLUG = 'fines'
 MEMCACHED_SERVER = 'memcached.example.org'
 

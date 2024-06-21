@@ -106,7 +106,7 @@ def new_login():
 @auth_required
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(settings.SAML_SP + settings.LOGOUT_SCRIPT)
 
 @app.route('/user', methods=['GET', 'POST'])
 @auth_required
