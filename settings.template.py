@@ -18,9 +18,9 @@ ALMA_INSTANCES = {
 
 # this maps the library names to the izs that they belong to
 INST_MAP = {
-    'my_main_library'		: 'my_iz',
-    'my_other_library'		: 'my_iz',
-    'your_other_library'	: 'your_iz',
+    'my_main_library': 'my_iz',
+    'my_other_library': 'my_iz',
+    'your_other_library': 'your_iz',
 }
 
 # transaction log file

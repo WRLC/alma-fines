@@ -10,8 +10,17 @@ services:
       - "traefik.http.routers.fines.rule=Host(`fines.wrlc.localhost`)"
       - "traefik.http.routers.fines.tls=true"
       - "traefik.http.routers.fines.entrypoints=websecure"
+    secrets:
+      - ssh_key
+      - gitconfig
     networks:
       - proxy
+
+secrets:
+  ssh_key:
+    file: ${SSH_KEY_FILE}
+  gitconfig:
+    file: ${GITCONFIG}
 
 networks:
   proxy:
